@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<!--
+  A pushState demonstration for users who exit your site and return via the
+  back button.  It's possible to return them to the exact same position there
+  were at before they left.  Very useful in long-scrolling vertical pages,
+  such as those using infinite scrolling.
+
+  NOTE:
+  This file will NOT execute properly if loaded as a local file!
+  If loaded via file:// the History API DOES NOT WORK.
+  You must load this file via http://, even if it's on localhost.
+
+  Author:
+    Steve Kwan
+    mail@stevekwan.com
+    http://www.stevekwan.com/
+
+  Originally from my GitHub:
+    https://github.com/stevekwan/experiments/
+
+  Date: Feb 17, 2013
+-->
+<head>
+</head>
+<body>
+  <div class="dynamic-content"></div>
+  <button>Iterate</button>
+  <p>
+      <a href="http://www.stevekwan.com/">stevekwan.com</a><br/>
+      (Click this outbound link and then click the back button to see popState
+      in action...your scroll position on the page will be preserved.)
+  </p>
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script>
+
+  var iterations = 0;
+
+
+  // Populates the page with a bunch of fake data to force vertical scrolling.
+  var generateIterations = function(count)
+  {
+    for (var i=0; i<count; i++)
+    {
+      $('.dynamic-content').append('<p>Iteration ' + iterations++ + '</p>');
+    }
+  };
+
+  // Check for HTML5 History API.
+  if (typeof history.pushState === 'undefined')
+  {
+    console.log("NO PUSHSTATE SUPPORT!");
+    return;
+  }
+
+  // Generates a bunch of crap content to force vertical scrolling.  Pushes
+  // the amount of crap via pushState so it can be retrieved when the user
+  // returns via the back button.
+  $('button').click
+  (
+    function()
+    {
+      generateIterations(20);
+      var state =
+      {
+        iterations: iterations
+      };
+      history.replaceState
+      (
+        state,
+        "Pushed!",
+        'infinitescroll.html'
+      );
+      console.log("Replaced state...");
+
+      // Scroll to bottom
+      $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+    }
+  );
+
+  // If the user returned via the back button, reset the page to the way it
+  // was before she left.
+  $(window).on
+  (
+    'popstate',
+    function(e)
+    {
+      console.log("Popped state!");
+      console.log(e.originalEvent);
+      if (e.originalEvent.state)
+      {
+        // If you make the page roughly the same height as it was before
+        // the user left the page, browsers will be smart enough to drop
+        // the user at the same scroll location they were previously at!
+        generateIterations(e.originalEvent.state.iterations);
+
+        // But if there is a delay in how quickly the page is re-rendered,
+        // such as due to an Ajax call, the browser will NOT always put the
+        // user back to the scroll position she was at before.
+        //
+        // This leads me to think that on popstate you should set the page to
+        // the proper vertical height (even if some of that space is empty),
+        // and fill in the content to those spaces via Ajax later.
+        $.ajax
+        (
+          '/some-data-source',
+          {
+            // Setting async to true blocks progressive rendering, and WILL
+            // force the user's viewport to the correct scroll position.  But
+            // the downside is you lose progressive rendering.
+            //async: false,
+            success: function(data)
+            {
+              // After the Ajax content comes back you can fill in the empty
+              // spaces on the page.  But as mentioned earlier, it's important
+              // to get the vertical height correct immediately so the browser
+              // can preserve the scroll position.
+            }
+          }
+        );
+      }
+    }
+  );
+
+  </script>
+</body>
+</html>

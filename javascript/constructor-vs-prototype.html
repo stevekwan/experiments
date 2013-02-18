@@ -3,34 +3,277 @@
   An exploration of JavaScript's prototype and constructor properties.
 
   For a really good explanation of how this stuff works, read:
+  Constructors considered mildly confusing, by Joost Diepenmaat
   http://joost.zeekat.nl/constructors-considered-mildly-confusing.html
 
   Enjoy!
 
-  Author: Steve Kwan
+  Author:
+    Steve Kwan
     mail@stevekwan.com
     http://www.stevekwan.com/
+
+  Originally from my GitHub:
+    https://github.com/stevekwan/experiments/
 
   Date: Feb 17, 2013
 -->
 
+<!--
+  tl;dr: "Classes" in JavaScript consist of a constructor function and prototype
+  object that point to each other.
+-->
 <html>
 <body>
   <script>
 
-  var MyObject = function()
+  // I'll be using the traditional OOP terminology of class/object here,
+  // despite the fact that JavaScript doesn't use the concept of classes.
+  // Hoping that by using this terminology it'll clarify the object model
+  // for people coming from a traditional OOP background...
+
+  // It's worth noting that the concept of classes may be coming sooner than we
+  // think, though:
+  // http://addyosmani.com/blog/a-few-new-things-coming-to-javascript/
+
+  // But in the meantime, we do OOP via the constructor/prototype relationship.
+  // So here we go...
+
+  // Define a "class" called Employee.  Again, note that JavaScript doesn't have
+  // any such thing as a class...yet.  So this is actually just an object, like
+  // any other.
+  var Employee = function()
   {
-    this.inConstructor = true;
+    // Let's add a default property to Employee.  Note that this is the WRONG
+    // way to do it!  We'll illustrate why in a bit...
+    this.company = "EA";
+
+    // Maybe a bit presumptuous of me to assume everyone works at my company by
+    // default...
   };
 
-  MyObject.prototype.foo = "foo";
-  MyObject.prototype.bar = "bar";
+  // Let's add some more default properties to Employee.  This is the RIGHT way
+  // to do it.  It's also our first exposure to prototype, a very important
+  // concept in JavaScript OOP.
+  Employee.prototype.division = "Sports";
+  Employee.prototype.country  = "Canada";
 
-  var myObject = new MyObject();
+  // Great!  Now let's create a helper function that prints out an employee.
+  Employee.prototype.print = function()
+  {
+    var output =
+      this.firstName + ' ' + this.lastName + ', ' + // First the name
+      this.division + ' division, ' +               // Then division
+      this.company + ' ' + this.country + '.';       // Then company/location
+    console.log(output);
+  };
 
-  console.log(myObject);
-  console.log(MyObject.prototype.constructor);
-  console.log(myObject.constructor);
+  // Now let's create a new object based off of our "class"...
+  var steve = new Employee();
+
+  // Looking good so far.  Now let's fill in my name:
+  steve.firstName = "Steve";
+  steve.lastName  = "Kwan";
+
+  console.log("My employee object...");
+  steve.print();
+  console.log(''); // This is just for console display formatting
+  // Output:
+  // My employee object...
+  // Steve Kwan, Sports division, EA Canada.
+
+  // So far so good!  Now let's create another employee: my boss!
+  var andrew       = new Employee();
+  andrew.firstName = "Andrew";
+  andrew.lastName  = "Wilson";
+
+  // Only thing is, Andrew works in California.
+  andrew.country = "USA";
+
+  // Let's see what we've got!
+  console.log("Steve and Andrew...");
+  steve.print();
+  andrew.print();
+  console.log('');
+  // Output:
+  // Steve and Andrew...
+  // Steve Kwan, Sports division, EA Canada.
+  // Andrew Wilson, Sports division, EA USA.
+
+  // Looking good so far!
+
+  // ...Oops.  I realize I made a typo.  Our division isn't called "Sports"...
+  // it's actually "EA SPORTS".  Common mistake:
+  // http://www.youtube.com/watch?v=rcw_G0oK6Ns
+
+  // While we're at it, let's also rename the company from EA to the proper
+  // name, "Electronic Arts".
+
+  // So let's change the default in our class definition and try again:
+  Employee.company            = "Electronic Arts";
+  Employee.prototype.division = "EA SPORTS"; // It's in the game!
+
+  // And let's make sure our change took effect...
+  console.log("After changing company and division...");
+  steve.print();
+  andrew.print();
+  console.log('');
+  // Output:
+  // After changing company and division...
+  // Steve Kwan, EA SPORTS division, EA Canada.
+  // Andrew Wilson, EA SPORTS division, EA USA.
+
+  // Uh oh.  The rename didn't work...at least, not completely.  The division
+  // was properly renamed to "EA SPORTS", but the company name is still wrong.
+  // Why?
+
+  // Let's go back and take a look at how we declared those two defaults:
+  // this.company = "EA";
+  // Employee.prototype.division = "Sports";
+
+  // The big difference is that division uses the prototype keyword.  And that's
+  // the one that worked.
+
+  // Welcome to object-oriented JavaScript.  :)
+
+  // In more "sane" object-oriented languages, you create a class, you spawn
+  // objects off of them, and you're done with it.  If you need to make a global
+  // change you do it at the class level, and all instantiated objects pick up
+  // that change automatically.  But JavaScript is NOT a "sane" object-oriented
+  // language.
+
+  // Instead, JavaScript uses what's called prototypal OOP.  For the best
+  // possible explanation of how this stacks up to classical OOP, I recommend
+  // reading The Good Parts, by Douglas Crockford:
+  // http://shop.oreilly.com/product/9780596517748.do
+
+  // In JavaScript, when you define a "class," you are actually just defining a
+  // constructor function.  This is the function that gets called whenever you
+  // use the var employee = new Employee() syntax.  Use of the new keyword tells
+  // JavaScript to create a new object and invoke Employee as its constructor.
+
+  // The important thing to note is that Employee is NOT actually a class!  It's
+  // a regular object like any other.  It just happens to do double duty as a
+  // constructor.  But you can assign and manipulate properties on it just like
+  // any other object.  For example:
+  Employee.favoriteFood = "Chicken";
+
+  // And this change will NOT be propagated to all instances of Employee,
+  // because they were already created long ago.
+  console.log("What's my favorite food?");
+  console.log(steve.favoriteFood);
+  console.log('');
+  // Output:
+  // What's my favorite food?
+  // undefined
+
+  // See?  No chicken!
+
+  // If you want to actually add something to a class definition so it affects
+  // all instances, you put it in prototype:
+  delete Employee.favoriteFood; // Get rid of the old one...
+  Employee.prototype.favoriteFood = "Chicken";
+
+  // Now let's try again...
+  console.log("Delicious, delicious meat...");
+  console.log(steve.favoriteFood);
+  console.log('');
+  // Output:
+  // Delicious, delicious meat...
+  // Chicken
+
+  // So that begs the question...WTF is a prototype?
+
+  // Whenever you define a function, it gets an automatically created property
+  // called prototype.  The prototype property points to a special "prototype"
+  // object, which is also automatically created with each function.  It is THAT
+  // object that contains all the shared "members" for your "class."  Confused
+  // yet?  :)
+
+  // The important takeaway is: in other languages a class is a single thing,
+  // but "class" definitions in JavaScript are split into TWO PARTS:
+  // 1: The constructor (a plain old function), such as Employee
+  // 2: The prototype, an automatically created object that every function gets.
+  // So a "class" is actually TWO separate objects!
+
+  // The constructor (or for that matter, any function) has an automatically-
+  // created property called prototype, which points to an automatically-
+  // created prototype object.
+
+  // The prototype is an object automatically created for every function, and it
+  // has an automatically-created attribute called constructor, which points
+  // back to the constructor function.
+
+  // Through these two properties, the two objects "link" to each other and are
+  // able to provide constructor/property functionality.
+
+  // To truly understand constructor and prototype - and the far more confusing
+  // __proto__ property - I recommend reading this great article by Joost
+  // Diepenmaat:
+  // http://joost.zeekat.nl/constructors-considered-mildly-confusing.html
+
+  // Anyway, now that we (hopefully) understand the relationship between
+  // constructor and prototype, let's fix our example from before.
+
+  delete Employee.company;                        // Remove from constructor
+  Employee.prototype.company = "Electronic Arts"; // Put it in the right place
+
+  // So let's check our changes...
+  console.log("Checking our fix...");
+  steve.print();
+  andrew.print();
+  console.log('');
+  // Output:
+  // Checking our fix...
+  // Steve Kwan, EA SPORTS division, EA Canada.
+  // Andrew Wilson, EA SPORTS division, EA USA.
+
+  // Huh?  Why does the company name still say EA?  We deleted Employee.company.
+  // What's going on?
+
+  // The answer is actually pretty simple.  The line:
+  // this.company = "EA";
+  // Is in the constructor for Employee.  Whenever new Employee() is invoked,
+  // that line is executed for the new Employe object being created.  And
+  // because it uses the this keyword, it is binding the company property
+  // TO THE NEW EMPLOYEE, not to the shared object.
+
+  // So yes, we removed company from Employee...but we did it AFTER the
+  // constructor had already been called.  Both the steve and andrew objects
+  // wound up with their own company properties, which we now need to delete.
+
+  // Let's clean that up.
+  delete steve.company;
+  delete andrew.company;
+
+  // Now let's try again:
+  console.log("FINALLY...");
+  steve.print();
+  andrew.print();
+  console.log('');
+  // Steve Kwan, EA SPORTS division, Electronic Arts Canada.
+  // Andrew Wilson, EA SPORTS division, Electronic Arts USA.
+
+  // Yay!
+
+  // I hope this does a good job of explaining how JavaScript handles OOP via
+  // the use of constructor and prototype.  This can be a real mind-bender for
+  // someone coming from a classical OOP background in languages like Java.
+
+  // I know I've already repeated this many times, but if you really want to
+  // understand constructor and prototype, I highly recommend Joost's article:
+  // http://joost.zeekat.nl/constructors-considered-mildly-confusing.html
+
+  // If you have any questions, please feel free to either comment on GitHub
+  // or contact me directly.  Thanks!
+
+  // Author:
+  //   Steve Kwan
+  //   mail@stevekwan.com
+  //   http://www.stevekwan.com/
+
+  // Originally from my GitHub:
+  // https://github.com/stevekwan/experiments/
 
   </script>
 </body>

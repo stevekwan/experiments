@@ -5,7 +5,7 @@ understand and explain complicated concepts.
 Most of my expertise is in front-end development, so this will consist mostly
 of JavaScript/CSS demonstrations.
 
-Author:
-Steve Kwan
-mail@stevekwan.com
+Author:  
+Steve Kwan  
+mail@stevekwan.com  
 http://www.stevekwan.com/

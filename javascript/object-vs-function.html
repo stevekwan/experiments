@@ -1,0 +1,165 @@
+<!--
+  An example to demonstrate the relationship between JavaScript's top-level
+  Function and Object objects.
+
+  For anyone seriously interested in JavaScript's object model, I highly
+  recommend reading:
+  http://vijayan.ca/blog/2012/02/21/javascript-type-model/
+
+  In particular, this diagram from the article demonstrates the weird and
+  complex relationships between Function and Object:
+  http://vijayan.ca/blog/wp-content/uploads/2012/02/javascript-object-function-and-array-relationship.png
+
+  It's by far the best article I've encountered on the subject.  Be prepared for
+  a bit of mind-bending, though.
+
+  Here's another great one that should englighten about how constructor and
+  prototype behave:
+  http://joost.zeekat.nl/constructors-considered-mildly-confusing.html
+
+  Hope this helps!
+
+  Author: Steve Kwan
+    mail@stevekwan.com
+    http://www.stevekwan.com/
+
+  Date: Feb 17, 2013
+-->
+<html>
+<body>
+  <script>
+
+
+  console.log("Function:");
+  console.log(Function);
+  console.log('');
+  // Outputs: function Function() { [native code] }
+  // Reason:  The Function object is the constructor for all functions, and
+  //          all constructors are functions.  Therefore Function is a function.
+
+  console.log("Function.prototype:");
+  console.log(Function.prototype);
+  console.log('');
+  // Outputs: function Empty() {}
+  // Reason:  Function's prototype reference contains all properties inherent
+  //          to any JavaScript function.  In particular, it includes the
+  //          apply() and call() functions.
+  //
+  //          I am not 100% sure why the prototype here needs to be a Function
+  //          and cannot just be an Object, as I don't understand why the
+  //          prototype would ever need to be directly invoked.
+  //
+  //          Also, it's worth noting that JavaScript does NOT provide direct
+  //          access to the prototype property when you're dealing with instance
+  //          objects.  However, you are allowed to access it as a direct
+  //          property of the constructor.
+  //
+  //          A lot of browsers let you access prototype via way of the
+  //          __proto__ property, but this is nonstandard and not officially
+  //          part of JavaScript.
+
+  console.log("Function.constructor:");
+  console.log(Function.constructor);
+  console.log('');
+  // Outputs: function Function() { [native code] }
+  // Reason:  The constructor reference is what gets invoked when you declare
+  //          new Function(), and thus it is a pointer back to Function
+  //          itself...which we already learned was a Function.
+
+  console.log("Function.prototype.constructor:");
+  console.log(Function.prototype.constructor);
+  console.log('');
+  // Outputs: function Function() { [native code] }
+  // Reason:  The prototype.constructor chain is always used to fetch an
+  //          object's original constructor method...in other words, the
+  //          function that gets called when you invoke new WhateverObject().
+  //
+  //          In this case, that would be the function that gets called when
+  //          you invoke new Function()...which as we already discussed, is
+  //          Function itself.
+
+  console.log("Object:");
+  console.log(Object);
+  console.log('');
+  // Outputs: function Object() { [native code] }
+  // Reason:  The top-level Object is a function?  Craziness!!!
+  //
+  //          ...Actually, this makes sense once you understand how the new
+  //          keyword works.  Every "class" (and I use the term loosely because
+  //          JavaScript has no classes) is actually composed of TWO objects:
+  //
+  //          #1: A function which acts as the constructor method, and
+  //          #2: An object which contains all members for that "class."
+  //
+  //          So #1 corresponds to the constructor property that all objects
+  //          contain, and #2 corresponds to the prototype property.
+  //
+  //          The Object object is actually the constructor for all new objects,
+  //          which is why the syntax new Object() works.  Internally, it
+  //          contains a reference to its prototype.  This is why Object
+  //          is a function...it's actually a constructor.  The properties
+  //          of Object are stored in a "real" object elsewhere.
+
+  console.log("Object.prototype:");
+  console.log(Object.prototype);
+  console.log('');
+  // Outputs: Object {}
+  // Reason:  Following on from the previous example, prototype is the object
+  //          containing all the members of the Object "class."  That's why
+  //          this is an object, whereas Object itself is a function.
+  //
+  //          Still not sure why Function.prototype is a function and not an
+  //          object, though...
+
+  console.log("Object.constructor:");
+  console.log(Object.constructor);
+  console.log('');
+  // Outputs: function Function() { [native code] }
+  // Reason:  As mentioned previously, all constructors are functions.
+
+  console.log("Object.prototype.constructor:");
+  console.log(Object.prototype.constructor);
+  console.log('');
+  // Outputs: function Object() { [native code] }
+  // Reason:  Here it gets a bit weird...normally an object's constructor
+  //          and prototype.constructor resolve to the same thing...but for
+  //          Object, that appears not to be the case!
+  //
+  //          This is due to the fact that Object, despite being top-level in
+  //          JavaScript's object hierarchy, still needs to be invoked like a
+  //          function when called as a constructor...and Function is a
+  //          "subclass" of Object.
+  //
+  //          The relationship between Object and Function are strange indeed.
+
+  console.log("Function instanceof Object:");
+  console.log(Function instanceof Object);
+  console.log('');
+  // Outputs: true
+  // Reason:  This makes sense.  After all, everything is an instance of
+  //          Object...
+
+  console.log("Object instanceof Function:");
+  console.log(Object instanceof Function);
+  console.log('');
+  // Outputs: true
+  // Reason:  ...but this is a bit stranger!  How can Object and Function both
+  //          be an instance of each other?!?
+  //
+  //          Again, it actually makes sense when you think about the
+  //          prototype/constructor relationship.  Object itself is a
+  //          constructor, and therefore a Function...but its prototype,
+  //          Object.prototype, is a straight-up object and thus an instance
+  //          of Object.
+
+  // To conclude...
+  // I hope this clarifies the interesting symbiotic relationship between
+  // JavaScript's Object and Function "classes."  Again, if you want to truly
+  // understand this, I cannot recommend this article enough...
+  //
+  // http://vijayan.ca/blog/2012/02/21/javascript-type-model/
+
+
+  </script>
+</body>
+</html>

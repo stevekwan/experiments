@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+  An exploration of JavaScript's prototype and constructor properties.
+
+  For a really good explanation of how this stuff works, read:
+  http://joost.zeekat.nl/constructors-considered-mildly-confusing.html
+
+  Enjoy!
+
+  Author: Steve Kwan
+    mail@stevekwan.com
+    http://www.stevekwan.com/
+
+  Date: Feb 17, 2013
+-->
+
+<html>
+<body>
+  <script>
+
+  var MyObject = function()
+  {
+    this.inConstructor = true;
+  };
+
+  MyObject.prototype.foo = "foo";
+  MyObject.prototype.bar = "bar";
+
+  var myObject = new MyObject();
+
+  console.log(myObject);
+  console.log(MyObject.prototype.constructor);
+  console.log(myObject.constructor);
+
+  </script>
+</body>
+</html>

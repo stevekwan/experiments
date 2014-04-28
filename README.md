@@ -6,8 +6,8 @@ Most of my expertise is in front-end development, so this will consist mostly
 of JavaScript/CSS demonstrations.
 
 Author:  
-Steve Kwan, Project Lead, EASPORTS.com  
-Electronic Arts  
+Steve Kwan, Head of Product Development  
+BroadbandTV Corp  
 <mail@stevekwan.com>  
 <http://www.stevekwan.com/>
 

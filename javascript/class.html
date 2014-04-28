@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
 <!--
-  An example of how to create a class hierarchy in JavaScript.
+  A really trivial example of how to create a class hierarchy in JavaScript.
 
-  THIS FILE IS A WORK IN PROGRESS.  I WILL EXPAND ON IT SOON.
+  This is NOT the only way to emulate classical OOP in JavaScript.  It may not
+  even be the best way.  But it's a solution and hopefully it'll prove useful
+  for beginners.
 
   Enjoy!
 
@@ -15,36 +17,124 @@
   Originally from my GitHub:
     https://github.com/stevekwan/experiments/
 
-  Date: Feb 21, 2013
+  Date: Apr 27, 2014
 -->
-<head>
-</head>
 <body>
 <script>
 
+  // Everything in JavaScript is global by default!
+  // Here's a really simple way to emulate namespaces in JavaScript.
   var MyNamespace = MyNamespace || {};
 
-  // link to constructor/prototype stuff
-
-  // be aware it IS possible to modify class definition at runtime
-
-  MyNamespace.MyClass = function(param1, param2)
+  // Define a sample "class" inside our namespace.
+  // As of this writing, JavaScript does not support classes
+  // (although it will in ECMAScript 6).
+  // You emulate classes by creating a function with members, like so:
+  MyNamespace.Human = function(firstName, lastName, creditCard)
   {
-    // constructor stuff goes here
-    // static goes here?
+    // Your "class" is really just one big function.  When you instantiate an
+    // object of this class using the *new* keyword, your class definition
+    // does double-duty as a constructor and is called like a regular function.
+    console.log ("Constructor called!");
+
+    // Defining a property on *this* creates a local property that can vary for
+    // each instance.
+    this.firstName = firstName;
+    this.lastName = lastName;
+
+    // A private varable.  Because it's not set as a property using *this*, it's
+    // not accessible outside of this function.
+    var _creditCard = creditCard;
+
+    // A public method.  Note it can access the private variables in this class.
+    this.getCreditCard = function()
+    {
+      return _creditCard;
+    };
+
   };
 
-  MyNamespace.MyClass.prototype.myPublicProperty = 1;
-
-  MyNamespace.MyClass.prototype.myPublicMethod = function(param1, param2)
+  // Here's another way of defining a public method.  You can pull it outside
+  // the scope of the constructor function.  Note that if you do this, you
+  // CANNOT access private variables due to scoping.
+  MyNamespace.Human.prototype.getFullName = function()
   {
-    //this. //show example of accessing private members
-    // show example of accessing private static members
+    return this.firstName + ' ' + this.lastName;
   };
 
-  // reiterate links to prototype
+  // *prototype* is an important concept in JavaScript.
+  // If you want to learn more about it works, I have an in-depth example here:
+  // https://github.com/stevekwan/experiments/blob/master/javascript/constructor-vs-prototype.html
 
-  //show inheritance example
+  // For a public static property, define it as a property of the constructor
+  // function itself.  This way it is NOT unique to every given instance.
+  MyNamespace.Human.scientificName = "Homo sapiens";
+
+  // Here's how you access the public static property.
+  MyNamespace.Human.prototype.getScientificName = function()
+  {
+    return MyNamespace.Human.scientificName;
+  };
+
+
+
+
+
+  console.log("Now that we've defined a class, let's instantiate an object!");
+  var steveKwan = new MyNamespace.Human("Steve", "Kwan", 6543210987654321);
+
+  // This is a public variable, so we can access it.
+  console.log(steveKwan.firstName);
+
+  // This is a private variable, so we can't.
+  console.log(steveKwan._creditCard);
+
+  // But there's a public method we can use to access that private variable!
+  console.log(steveKwan.getCreditCard());
+
+  // Here's another public method I can use as a helper.
+  console.log(steveKwan.getFullName());
+
+
+
+
+
+
+  console.log(''); // Just here for console formatting
+
+
+
+
+  console.log("Let's create another instance.");
+  var johnDoe = new MyNamespace.Human("John", "Doe", 1234567890123456);
+
+  console.log(''); // Just here for console formatting
+
+  console.log("Static variables are the same for all instances...");
+  console.log(steveKwan.getScientificName());
+  console.log(johnDoe.getScientificName());
+
+  console.log(''); // Just here for console formatting
+
+  console.log("Changing a static variable affects all instances...");
+  MyNamespace.Human.scientificName = "Homo sapiens sapiens";
+  console.log(steveKwan.getScientificName());
+  console.log(johnDoe.getScientificName());
+
+
+
+
+
+  // That's it for now!
+
+  // At some point I'd like to extend this and give some examples of how
+  // inheritance works in JavaScript.
+
+  // Hope this helps!
+
+
+
+
 
   </script>
 </body>

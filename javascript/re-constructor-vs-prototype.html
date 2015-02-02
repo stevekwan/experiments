@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--
+  RE: An exploration of JavaScript's prototype and constructor properties.
+
+  >For a really good explanation of how this stuff works, read:
+  >Constructors considered mildly confusing, by Joost Diepenmaat
+  >http://joost.zeekat.nl/constructors-considered-mildly-confusing.html
+  >
+  >Enjoy!
+  >
+  >Author:
+  >  Steve Kwan
+  >  mail@stevekwan.com
+  >  http://www.stevekwan.com/
+  >
+  >Originally from my GitHub:
+  >  https://github.com/stevekwan/experiments/
+  >
+  >Date: Feb 17, 2013
+  >
+Author:
+  Revlin John
+  stylogicalmaps@gmail.com
+  http://github.com/Revlin
+
+Date: April 29th, 2014
+
+Hi Steve,
+
+First, thank you for the tutorial/hints in javascript/constructor-vs-prototype.html
+
+I did want to point out one thing, though. You basically spend lines 215 to 255 
+demonstrating why defining ```this.company``` within the ```Employee``` constructor 
+is "the WRONG way to do it," however it seems like you're missing the broader 
+context for that technique. 
+
+So...
+-->
+
+<!--
+  tl;dr: "Classes" in JavaScript consist of a constructor function and prototype
+  object that point to each other.
+-->
+<html>
+<body>
+  <script>
+
+/*
+ * So, you seem to imply that ```company``` should be a "class" variable, 
+ * with a single value shared by all instances of ```Employee```. In that 
+ * case, yes, declaring ```Employee.prototype.company``` after the definition 
+ * for ```Employee``` is one way to make that happen. 
+
+ * On the other hand, what about the variables ```firstName``` and ```lastName```? 
+ * In the example you add these variables to each of the ```Employee``` objects 
+ * after they have been instantiated, which indicates that an instance of 
+ * ```Employee``` may or may NOT have a ```firstName``` or ```lastName```. Yet, 
+ * if you wanted to ensure that every ```Employee``` had a ```firstName``` and 
+ * ```lastName```, as well as indicate that the value of these variables is 
+ * independent from one instance to another (i.e. "instance" variables), then using 
+ * ```this``` to define these vars within the ```Employee``` constructor is the 
+ * optimal technique:
+ */
+    var Employee = function( firstName, lastName )
+    {
+        this.firstName = firstName || "First Name";
+        this.lastName = lastName || "Last Name";
+    }
+	
+/*
+ * Also, getting back to ```Employee.prototype.company```, you can use it within 
+ * the constructor function and still achieve a "class" level variable, the value 
+ * of which is shared by all instances, as in:
+ */
+	
+    var Employee = function( firstName, lastName )
+    {
+        Employee.prototype.company = "EA";	// overwrites prototype 'company' 
+											// each time constructor is called
+        this.firstName = firstName || "First Name";
+        this.lastName = lastName || "Last Name";
+    }
+	
+/* 
+ * If you change ```Employee.prototype.company``` after the object has been created, 
+ * that object's ```company``` will change as well. Unless you specifically assign 
+ * a value to ```dude.company``` after you instantiate a new ```Employee``` (in this 
+ * case ```dude```), that object's ```company``` will be referenced up the prototype 
+ * chain. So, using the above constructor you can:
+ */
+    var steve = new Employee("Steve", "Kwan");
+    var andrew = new Employee("Andrew", "Wilson");
+    console.log( steve.firstName +"\n"+ steve.lastName +"\n"+ steve.company );
+    console.log( andrew.firstName +"\n"+ andrew.lastName +"\n"+ andrew.company );
+
+    Employee.prototype.company = "Electronic Arts";
+    console.log( steve.firstName +"\n"+ steve.lastName +"\n"+ steve.company );
+    console.log( andrew.firstName +"\n"+ andrew.lastName +"\n"+ andrew.company );
+	console.log( "\n" );
+
+
+  // Let's add some more default properties to Employee.  This is the RIGHT way
+  // to do it.  It's also our first exposure to prototype, a very important
+  // concept in JavaScript OOP.
+  Employee.prototype.division = "Sports";
+  Employee.prototype.country  = "Canada";
+
+  // Great!  Now let's create a helper function that prints out an employee.
+  Employee.prototype.print = function()
+  {
+    var output =
+      this.firstName + ' ' + this.lastName + ', ' + // First the name
+      this.division + ' division, ' +               // Then division
+      this.company + ' ' + this.country + '.';       // Then company/location
+    console.log(output);
+  };
+
+  // Now let's create a new object based off of our "class"...
+  var steve = new Employee();
+
+  // Looking good so far.  Now let's fill in my name:
+  steve.firstName = "Steve";
+  steve.lastName  = "Kwan";
+
+  console.log("My employee object...");
+  steve.print();
+  console.log(''); // This is just for console display formatting
+  // Output:
+  // My employee object...
+  // Steve Kwan, Sports division, EA Canada.
+
+  // So far so good!  Now let's create another employee: my boss!
+  var andrew       = new Employee();
+  andrew.firstName = "Andrew";
+  andrew.lastName  = "Wilson";
+
+  // Only thing is, Andrew works in California.
+  andrew.country = "USA";
+
+  // Let's see what we've got!
+  console.log("Steve and Andrew...");
+  steve.print();
+  andrew.print();
+  console.log('');
+  // Output:
+  // Steve and Andrew...
+  // Steve Kwan, Sports division, EA Canada.
+  // Andrew Wilson, Sports division, EA USA.
+
+  // Looking good so far!
+
+  // ...Oops.  I realize I made a typo.  Our division isn't called "Sports"...
+  // it's actually "EA SPORTS".  Common mistake:
+  // http://www.youtube.com/watch?v=rcw_G0oK6Ns
+
+  // While we're at it, let's also rename the company from EA to the proper
+  // name, "Electronic Arts".
+
+  // So let's change the default in our class definition and try again:
+  Employee.company            = "Electronic Arts";
+  Employee.prototype.division = "EA SPORTS"; // It's in the game!
+
+  // And let's make sure our change took effect...
+  console.log("After changing company and division...");
+  steve.print();
+  andrew.print();
+  console.log('');
+  // Output:
+  // After changing company and division...
+  // Steve Kwan, EA SPORTS division, EA Canada.
+  // Andrew Wilson, EA SPORTS division, EA USA.
+
+  delete Employee.company;                        // Remove from constructor
+  Employee.prototype.company = "Electronic Arts"; // Put it in the right place
+	  
+  /* The following output now shows the correct company label */
+  console.log( "Now declaring 'company' back within the constructor function: " );
+
+  // So let's check our changes...
+  console.log("Checking our fix...");
+  steve.print();
+  andrew.print();
+  console.log('');
+  // Output:
+  // Checking our fix...
+  //! Steve Kwan, EA SPORTS division, Electronic Arts Canada. 
+  //! Andrew Wilson, EA SPORTS division, Electronic Arts USA.
+
+/* 
+ * The only problem here is that if a new object is created 
+ * ```Employee.prototype.company``` will be reset to EA.  Here's a way 
+ * to deal with that:
+ */
+
+    var Employee = function( firstName, lastName )
+    {
+        Employee.prototype.company = Employee.prototype.company || "EA";
+        this.firstName = firstName || "First Name";
+        this.lastName = lastName || "Last Name";
+    }
+    Employee.prototype.company = "Electronic Arts";
+
+    var revlin = new Employee("Revlin", "John");
+    revlin.company = "N/A"; // change revlin's employer
+
+    console.log( revlin.firstName +"\n"+ revlin.lastName +"\n"+ revlin.company );
+    console.log( steve.firstName +"\n"+ steve.lastName +"\n"+ steve.company );
+    console.log( andrew.firstName +"\n"+ andrew.lastName +"\n"+ andrew.company );
+	  
+/* 
+ * Additionally, a neat way to add some level of encapsulation to these variables 
+ * would be to use ES5's property descriptor object, including getters and setters. 
+ * Just wanted to point that out to you. Again, thank you for the short tutorial, 
+ * which I'm currently using to wrap my brain around JavaScript "classes"
+ * 
+ * Dream, play & have fun,
+ * Rev
+ */
+
+  </script>
+</body>
+</html>
